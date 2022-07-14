@@ -1,7 +1,9 @@
-import requests
+from urllib.request import urlopen
+import json
 from flask import request
 from functools import wraps
 from jose import jwt
+import ssl
 
 AUTH0_DOMAIN = 'dev-cbktv2dk.us.auth0.com'
 ALGORITHMS = ['RS256']
@@ -60,8 +62,9 @@ def check_permissions(permission, payload):
     return True
 
 def verify_decode_jwt(token):
-    jsonurl = f'https://{AUTH0_DOMAIN}/.well-known/jwks.json'
-    jwks = requests.get(jsonurl).json()
+    context = ssl._create_unverified_context()
+    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json', context=context)
+    jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
     rsa_key = {}
     if 'kid' not in unverified_header:
